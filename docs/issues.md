@@ -242,34 +242,6 @@ raw = archive.read(member_name)  # ← no check against metadata["size"]
 
 ---
 
-## 🚀 Feature Requests
-
-### 1. Add `waggle-mcp stats` command for orchestrator memory visibility
-
-**Title:** `[feature] Add waggle-mcp stats command to surface orchestrator memory usage`
-
-**Problem or use case:**
-After long-running sessions, operators have no CLI visibility into the `AsyncMemoryOrchestrator`'s internal state — the `_known_turn_ids` set size, queue depth, or policy counters. The existing `waggle-mcp doctor` command checks system health but does not report runtime memory statistics. This makes it difficult to diagnose memory issues, capacity plan, or verify that fixes (like bounding `_known_turn_ids`) are working as expected.
-
-**Proposed solution:**
-Add a `waggle-mcp stats` subcommand that reports:
-- Current `_known_turn_ids` count and estimated memory footprint
-- Ingest queue depth and capacity
-- Last ingest timestamps per scope from `MemoryPolicy.last_ingest_at`
-- Optionally support `--json` for machine-readable output (consistent with `doctor --json`)
-
-**Alternatives considered:**
-- Extending `get_stats` MCP tool — useful for LLMs but not for CLI operators doing system administration
-- Adding the stats to `waggle-mcp doctor` — reasonable but `doctor` is diagnostic/fix-focused, whereas `stats` is monitoring-focused
-
-**Suggested implementation scope:**
-`src/waggle/server.py` (CLI parser + stats subcommand), `src/waggle/orchestrator.py` (expose stats method), `tests/test_orchestrator.py`
-
-**Screenshot:**
-*(Attach a screenshot of `waggle-mcp doctor` output and annotate: "No orchestrator memory stats shown")*
-
----
-
 ## 📖 Documentation Improvements
 
 ### 1. Clarify WAGGLE_MODEL=deterministic Degradation
