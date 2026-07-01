@@ -224,6 +224,15 @@ def _read_member(archive: zipfile.ZipFile, manifest: dict[str, Any], member_name
     metadata = dict(manifest.get("members", {}).get(member_name, {}))
     if member_name not in archive.namelist():
         return b""
+        
+    # Prevent zip bomb by checking the uncompressed size before reading
+    info = archive.getinfo(member_name)
+    max_size = 500 * 1024 * 1024  # 500 MB
+    if info.file_size > max_size:
+        raise ValidationFailure(
+            f"Member {member_name} exceeds maximum allowed uncompressed size ({max_size} bytes)"
+        )
+        
     raw = archive.read(member_name)
     if metadata.get("encrypted"):
         payload = json.loads(raw.decode("utf-8"))
