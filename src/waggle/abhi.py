@@ -220,20 +220,37 @@ def _decrypt_bytes(payload: dict[str, Any], *, passphrase: str) -> bytes:
         raise ValidationFailure("Could not decrypt .abhi payload. Check the passphrase.") from exc
 
 
-def _read_member(archive: zipfile.ZipFile, manifest: dict[str, Any], member_name: str, *, passphrase: str) -> bytes:
-    metadata = dict(manifest.get("members", {}).get(member_name, {}))
+def _safe_read(archive: zipfile.ZipFile, member_name: str, max_size: int = 500 * 1024 * 1024) -> bytes:
     if member_name not in archive.namelist():
         return b""
         
-    # Prevent zip bomb by checking the uncompressed size before reading
     info = archive.getinfo(member_name)
-    max_size = 500 * 1024 * 1024  # 500 MB
     if info.file_size > max_size:
         raise ValidationFailure(
             f"Member {member_name} exceeds maximum allowed uncompressed size ({max_size} bytes)"
         )
         
-    raw = archive.read(member_name)
+    raw_io = io.BytesIO()
+    with archive.open(member_name) as f:
+        bytes_read = 0
+        while True:
+            chunk = f.read(8192)
+            if not chunk:
+                break
+            bytes_read += len(chunk)
+            if bytes_read > max_size:
+                raise ValidationFailure(
+                    f"Member {member_name} exceeds maximum allowed uncompressed size ({max_size} bytes)"
+                )
+            raw_io.write(chunk)
+    return raw_io.getvalue()
+
+
+def _read_member(archive: zipfile.ZipFile, manifest: dict[str, Any], member_name: str, *, passphrase: str) -> bytes:
+    metadata = dict(manifest.get("members", {}).get(member_name, {}))
+    raw = _safe_read(archive, member_name)
+    if not raw:
+        return b""
     if metadata.get("encrypted"):
         payload = json.loads(raw.decode("utf-8"))
         return _decrypt_bytes(payload, passphrase=passphrase)
@@ -719,7 +736,7 @@ def load_abhi_document(input_path: str | Path, passphrase: str = "") -> dict[str
     with zipfile.ZipFile(zip_source, "r") as archive:
         if ABHI_MANIFEST_MEMBER not in archive.namelist():
             raise ValidationFailure(f"{source} is missing {ABHI_MANIFEST_MEMBER}.")
-        manifest = json.loads(archive.read(ABHI_MANIFEST_MEMBER).decode("utf-8"))
+        manifest = json.loads(_safe_read(archive, ABHI_MANIFEST_MEMBER).decode("utf-8"))
         _assert_supported_schema_version(str(manifest.get("schema_version", "")))
         document = {
             "manifest": manifest,
@@ -733,8 +750,8 @@ def load_abhi_document(input_path: str | Path, passphrase: str = "") -> dict[str
             ),
         }
         if manifest.get("signatures", {}).get("present"):
-            document["signature"] = archive.read(ABHI_SIGNATURE_MEMBER)
-            document["public_key_pem"] = archive.read(ABHI_PUBLIC_KEY_MEMBER)
+            document["signature"] = _safe_read(archive, ABHI_SIGNATURE_MEMBER)
+            document["public_key_pem"] = _safe_read(archive, ABHI_PUBLIC_KEY_MEMBER)
         return _with_compat_views(document)
 
 
