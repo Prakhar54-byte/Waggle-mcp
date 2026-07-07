@@ -25,10 +25,17 @@ def test_read_member_zip_bomb_protection() -> None:
     with zipfile.ZipFile(buf, "r") as archive:
         manifest = {"members": {"large_file.txt": {}}}
         
+        # Monkeypatch getinfo to spoof file size since writestr overwrites it
+        original_getinfo = archive.getinfo
+        def fake_getinfo(name):
+            info = original_getinfo(name)
+            info.file_size = 600 * 1024 * 1024
+            return info
+        archive.getinfo = fake_getinfo
+        
         # Reading should fail due to the spoofed large file_size
         with pytest.raises(ValidationFailure, match=r"exceeds maximum allowed uncompressed size"):
             _read_member(archive, manifest, "large_file.txt", passphrase="")
-
 
 def test_read_member_normal_size_allowed() -> None:
     """Ensure that _read_member allows members within the size limit."""
