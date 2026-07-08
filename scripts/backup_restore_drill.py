@@ -14,6 +14,7 @@ Usage:
 Exit codes: 0 = all checks passed, 1 = one or more failures.
 Requires: pip install httpx
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,10 +62,7 @@ class DrillReport:
             "passed": self.passed,
             "failed": self.failed,
             "status": "PASS" if self.failed == 0 else "FAIL",
-            "checks": [
-                {"label": c.label, "passed": c.passed, "detail": c.detail}
-                for c in self.checks
-            ],
+            "checks": [{"label": c.label, "passed": c.passed, "detail": c.detail} for c in self.checks],
         }
 
     def print_text(self) -> None:
@@ -116,11 +114,17 @@ def run(args: argparse.Namespace) -> DrillReport:
         for i in range(1, 4):
             label = f"drill-node-{i}-{int(time.time())}"
             try:
-                rsp = mcp_call(client, args.host, args.api_key, "store_node", {
-                    "label": label,
-                    "content": f"Backup/restore drill test node {i}.",
-                    "node_type": "fact",
-                })
+                rsp = mcp_call(
+                    client,
+                    args.host,
+                    args.api_key,
+                    "store_node",
+                    {
+                        "label": label,
+                        "content": f"Backup/restore drill test node {i}.",
+                        "node_type": "fact",
+                    },
+                )
                 node_id = rsp["structuredContent"]["id"]
                 node_ids.append(node_id)
                 report.add(f"store node {i}", True, f"id={node_id}")
@@ -143,8 +147,7 @@ def run(args: argparse.Namespace) -> DrillReport:
             backup_path = tf.name
 
         try:
-            rsp = mcp_call(client, args.host, args.api_key, "export_graph_backup",
-                           {"output_path": backup_path})
+            rsp = mcp_call(client, args.host, args.api_key, "export_graph_backup", {"output_path": backup_path})
             sc = rsp["structuredContent"]
             exported_nodes = sc.get("node_count", -1)
             report.add("export backup", exported_nodes >= 3, f"{exported_nodes} nodes exported")
@@ -156,22 +159,23 @@ def run(args: argparse.Namespace) -> DrillReport:
         try:
             data = json.loads(Path(backup_path).read_text())
             valid = all(k in data for k in ("schema_version", "nodes", "edges", "tenant_id"))
-            report.add("backup JSON structure", valid,
-                       f"schema_version={data.get('schema_version','?')}, "
-                       f"{len(data.get('nodes',[]))} nodes, {len(data.get('edges',[]))} edges")
+            report.add(
+                "backup JSON structure",
+                valid,
+                f"schema_version={data.get('schema_version', '?')}, "
+                f"{len(data.get('nodes', []))} nodes, {len(data.get('edges', []))} edges",
+            )
         except Exception as exc:
             report.add("backup JSON structure", False, str(exc))
 
         # ── 6. Import backup ────────────────────────────────────────────
         try:
-            rsp = mcp_call(client, args.host, args.api_key, "import_graph_backup",
-                           {"input_path": backup_path})
+            rsp = mcp_call(client, args.host, args.api_key, "import_graph_backup", {"input_path": backup_path})
             sc = rsp["structuredContent"]
             created = sc.get("nodes_created", 0)
             updated = sc.get("nodes_updated", 0)
             total = created + updated
-            report.add("import backup", total >= 3,
-                       f"nodes_created={created}, nodes_updated={updated}")
+            report.add("import backup", total >= 3, f"nodes_created={created}, nodes_updated={updated}")
         except Exception as exc:
             report.add("import backup", False, str(exc))
 
@@ -179,9 +183,11 @@ def run(args: argparse.Namespace) -> DrillReport:
         try:
             rsp = mcp_call(client, args.host, args.api_key, "get_stats", {})
             nodes_after = rsp["structuredContent"].get("total_nodes", 0)
-            report.add("post-import node count ≥ pre-backup",
-                       nodes_after >= nodes_before,
-                       f"before={nodes_before}, after={nodes_after}")
+            report.add(
+                "post-import node count ≥ pre-backup",
+                nodes_after >= nodes_before,
+                f"before={nodes_before}, after={nodes_after}",
+            )
         except Exception as exc:
             report.add("post-import stats", False, str(exc))
 
@@ -195,8 +201,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="waggle-mcp backup/restore drill")
     parser.add_argument("--host", default="http://localhost:8080")
     parser.add_argument("--api-key", required=True, dest="api_key")
-    parser.add_argument("--json", action="store_true", dest="as_json",
-                        help="Output results as JSON (for CI)")
+    parser.add_argument("--json", action="store_true", dest="as_json", help="Output results as JSON (for CI)")
     args = parser.parse_args()
 
     report = run(args)

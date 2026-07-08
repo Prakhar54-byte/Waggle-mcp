@@ -12,17 +12,13 @@ LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 IGNORED_DIRS = {".venv", ".git", "node_modules"}
 
-markdown_files = sorted(
-    path
-    for path in ROOT.rglob("*.md")
-    if not any(part in IGNORED_DIRS for part in path.parts)
-)
+markdown_files = sorted(path for path in ROOT.rglob("*.md") if not any(part in IGNORED_DIRS for part in path.parts))
 
 broken_links = []
 
 for md_file in markdown_files:
     text = md_file.read_text(encoding="utf-8")
-    
+
     # Ignore Markdown examples inside code blocks and inline code spans.
     text = FENCED_CODE_PATTERN.sub("", text)
     text = INLINE_CODE_PATTERN.sub("", text)

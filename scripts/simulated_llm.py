@@ -27,11 +27,12 @@ def main():
     users = sorted(list(users_with_evidence))
     pairs = []
     for i in range(len(users)):
-        for j in range(i+1, len(users)):
+        for j in range(i + 1, len(users)):
             pairs.append(f"({users[i]}, {users[j]})")
 
     # Print the answer to stdout as requested by the benchmark
     print(" | ".join(pairs))
+
 
 if __name__ == "__main__":
     main()

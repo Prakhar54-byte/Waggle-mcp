@@ -18,6 +18,7 @@ RLM Baseline (from paper arXiv:2511.02817):
 Run:
     PYTHONPATH=src GROQ_API_KEY=gsk_... .venv/bin/python3 scripts/oolong/run_oolong_llm_eval.py
 """
+
 import ast
 import json
 import os
@@ -40,11 +41,11 @@ from waggle.oolong_benchmark import _index_context_window, load_oolong_examples
 # Config
 # ---------------------------------------------------------------------------
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL_PAIRS = "llama-3.1-8b-instant"   # fast + low TPM
-GROQ_MODEL_SYNTH = "llama-3.1-8b-instant"   # same model, consistent comparison
+GROQ_MODEL_PAIRS = "llama-3.1-8b-instant"  # fast + low TPM
+GROQ_MODEL_SYNTH = "llama-3.1-8b-instant"  # same model, consistent comparison
 
-PAIRS_DATASET  = ROOT / "benchmarks/data/oolong_synthetic_20.jsonl"
-REAL_DATASET   = ROOT / "benchmarks/data/oolong_real_clean_30.jsonl"  # clean: 1 CW per example, no preamble
+PAIRS_DATASET = ROOT / "benchmarks/data/oolong_synthetic_20.jsonl"
+REAL_DATASET = ROOT / "benchmarks/data/oolong_real_clean_30.jsonl"  # clean: 1 CW per example, no preamble
 
 DB_PATH = ROOT / "benchmarks/data/llm_eval.db"
 
@@ -94,7 +95,7 @@ def call_llm(prompt: str, max_tokens: int = 512, model: str | None = None) -> st
             )
             return resp.choices[0].message.content.strip()
         except groq.RateLimitError:
-            wait = min(60, 5 * (2 ** attempt))
+            wait = min(60, 5 * (2**attempt))
             print(f"    [rate limit] sleeping {wait}s...")
             time.sleep(wait)
         except Exception as e:
@@ -166,7 +167,7 @@ def parse_pairs_from_llm(raw: str) -> list[str]:
         m = re.match(r"\((\d+),\s*(\d+)\)", line)
         if m:
             a, b = int(m.group(1)), int(m.group(2))
-            pairs.append(f"({min(a,b)}, {max(a,b)})")
+            pairs.append(f"({min(a, b)}, {max(a, b)})")
     return sorted(set(pairs))
 
 
@@ -206,7 +207,7 @@ def synth_exact_match(pred_raw: str, gold) -> bool:
 @dataclass
 class CaseResult:
     example_id: str
-    dataset: str          # "pairs" or "synth"
+    dataset: str  # "pairs" or "synth"
     task_group: str
     mode: str
     retrieved_node_count: int
@@ -363,16 +364,18 @@ def run_synth_case(graph, row: dict, mode: str) -> CaseResult:
 # Printing
 # ---------------------------------------------------------------------------
 def print_report(report: ModeReport):
-    print(f"\n{'='*84}")
+    print(f"\n{'=' * 84}")
     print(f"  MODE: {report.mode}")
-    print(f"{'='*84}")
+    print(f"{'=' * 84}")
     print(f"  {'ID':<14} {'Dataset':<8} {'Task':<12} {'Chunks':>6} {'RetTok':>7} {'PmtTok':>7} {'Lat':>5} {'✓'}")
-    print(f"  {'-'*75}")
+    print(f"  {'-' * 75}")
     for c in report.cases:
         em = "✅" if c.exact_match else "❌"
-        print(f"  {c.example_id:<14} {c.dataset:<8} {c.task_group:<12} "
-              f"{c.retrieved_node_count:>6} {c.retrieved_tokens:>7} "
-              f"{c.prompt_tokens:>7} {c.latency_s:>4.1f}s {em}")
+        print(
+            f"  {c.example_id:<14} {c.dataset:<8} {c.task_group:<12} "
+            f"{c.retrieved_node_count:>6} {c.retrieved_tokens:>7} "
+            f"{c.prompt_tokens:>7} {c.latency_s:>4.1f}s {em}"
+        )
         if not c.exact_match:
             pred = c.predicted_answer.replace("\n", " ")[:80]
             gold = str(c.gold_answer)[:60]
@@ -381,10 +384,12 @@ def print_report(report: ModeReport):
 
     for ds in ("pairs", "synth"):
         s = report.summary(ds)
-        print(f"\n  [{ds.upper()}] correct={s['correct']}/{s['total']}  "
-              f"accuracy={s['accuracy_pct']}%  "
-              f"avg_ret_tok={s['avg_retrieved_tokens']}  "
-              f"avg_lat={s['avg_latency_s']}s")
+        print(
+            f"\n  [{ds.upper()}] correct={s['correct']}/{s['total']}  "
+            f"accuracy={s['accuracy_pct']}%  "
+            f"avg_ret_tok={s['avg_retrieved_tokens']}  "
+            f"avg_lat={s['avg_latency_s']}s"
+        )
 
     s = report.summary()
     print(f"\n  [OVERALL] correct={s['correct']}/{s['total']}  accuracy={s['accuracy_pct']}%")
@@ -394,14 +399,16 @@ def print_report(report: ModeReport):
 # Main
 # ---------------------------------------------------------------------------
 def main():
-    print("\n" + "="*84)
+    print("\n" + "=" * 84)
     print("  OOLONG FULL LLM EVALUATION  (Groq llama-3.3-70b-versatile)")
-    print("="*84)
+    print("=" * 84)
 
     print("\n🔧 Building graph...")
     t0 = time.time()
     graph, pairs_examples, real_examples = build_graph(PAIRS_DATASET, REAL_DATASET, DB_PATH)
-    print(f"   Done in {time.time()-t0:.1f}s — {len(pairs_examples)} pairs + {len(real_examples)} synth examples indexed")
+    print(
+        f"   Done in {time.time() - t0:.1f}s — {len(pairs_examples)} pairs + {len(real_examples)} synth examples indexed"
+    )
 
     mode1 = ModeReport(mode="Mode 1 — top-k (max_nodes=8) + Groq LLM")
     mode2 = ModeReport(mode="Mode 2 — Waggle aggregate (max_nodes=1000) + Groq LLM")
@@ -409,12 +416,12 @@ def main():
     total = len(pairs_examples) + len(real_examples)
     done = 0
 
-    print(f"\n⚡ Running {total} pairs cases × 2 modes = {total*2} LLM calls total...\n")
+    print(f"\n⚡ Running {total} pairs cases × 2 modes = {total * 2} LLM calls total...\n")
 
     # --- Pairs dataset ---
     for ex in pairs_examples:
         for mode_key, report in [("topk", mode1), ("aggregate", mode2)]:
-            print(f"  [{done+1}/{total*2}] {ex.example_id} | mode={mode_key}", end=" ", flush=True)
+            print(f"  [{done + 1}/{total * 2}] {ex.example_id} | mode={mode_key}", end=" ", flush=True)
             c = run_pairs_case(graph, ex, mode_key)
             report.cases.append(c)
             em = "✅" if c.exact_match else "❌"
@@ -425,7 +432,11 @@ def main():
     # --- Real synth dataset ---
     for row in real_examples:
         for mode_key, report in [("topk", mode1), ("aggregate", mode2)]:
-            print(f"  [{done+1}/{total*2}] {row['example_id']} | mode={mode_key} | task={row['task_group']}", end=" ", flush=True)
+            print(
+                f"  [{done + 1}/{total * 2}] {row['example_id']} | mode={mode_key} | task={row['task_group']}",
+                end=" ",
+                flush=True,
+            )
             c = run_synth_case(graph, row, mode_key)
             report.cases.append(c)
             em = "✅" if c.exact_match else "❌"
@@ -445,28 +456,38 @@ def main():
     s1_s = mode1.summary("synth")
     s2_s = mode2.summary("synth")
 
-    print(f"\n{'='*84}")
+    print(f"\n{'=' * 84}")
     print("  HEAD-TO-HEAD COMPARISON")
-    print(f"{'='*84}")
+    print(f"{'=' * 84}")
     print(f"  {'Metric':<35} {'Mode1 (top-k)':>15} {'Mode2 (Waggle)':>15} {'RLM (paper)':>12}")
-    print(f"  {'-'*80}")
-    print(f"  {'Overall accuracy':<35} {s1_all['accuracy_pct']:>14.1f}% {s2_all['accuracy_pct']:>14.1f}% {RLM_REPORTED_ACCURACY:>11.1f}%")
+    print(f"  {'-' * 80}")
+    print(
+        f"  {'Overall accuracy':<35} {s1_all['accuracy_pct']:>14.1f}% {s2_all['accuracy_pct']:>14.1f}% {RLM_REPORTED_ACCURACY:>11.1f}%"
+    )
     print(f"  {'OOLONG-Pairs accuracy':<35} {s1_p['accuracy_pct']:>14.1f}% {s2_p['accuracy_pct']:>14.1f}% {'N/A':>12}")
-    print(f"  {'OOLONG-synth accuracy':<35} {s1_s['accuracy_pct']:>14.1f}% {s2_s['accuracy_pct']:>14.1f}% {RLM_REPORTED_ACCURACY:>11.1f}%")
-    print(f"  {'Avg retrieved tokens (pairs)':<35} {s1_p['avg_retrieved_tokens']:>15} {s2_p['avg_retrieved_tokens']:>15} {'full ctx':>12}")
-    print(f"  {'Avg prompt tokens (synth)':<35} {s1_s['avg_prompt_tokens']:>15} {s2_s['avg_prompt_tokens']:>15} {'full ctx':>12}")
+    print(
+        f"  {'OOLONG-synth accuracy':<35} {s1_s['accuracy_pct']:>14.1f}% {s2_s['accuracy_pct']:>14.1f}% {RLM_REPORTED_ACCURACY:>11.1f}%"
+    )
+    print(
+        f"  {'Avg retrieved tokens (pairs)':<35} {s1_p['avg_retrieved_tokens']:>15} {s2_p['avg_retrieved_tokens']:>15} {'full ctx':>12}"
+    )
+    print(
+        f"  {'Avg prompt tokens (synth)':<35} {s1_s['avg_prompt_tokens']:>15} {s2_s['avg_prompt_tokens']:>15} {'full ctx':>12}"
+    )
     print(f"  {'Avg latency/call':<35} {s1_all['avg_latency_s']:>14.2f}s {s2_all['avg_latency_s']:>14.2f}s {'N/A':>12}")
 
     # Verdict
     print()
-    delta = s2_all['accuracy_pct'] - s1_all['accuracy_pct']
-    delta_rlm = s2_all['accuracy_pct'] - RLM_REPORTED_ACCURACY
+    delta = s2_all["accuracy_pct"] - s1_all["accuracy_pct"]
+    delta_rlm = s2_all["accuracy_pct"] - RLM_REPORTED_ACCURACY
     if delta > 0:
         print(f"  🏆 Waggle aggregate beats top-k by {delta:.1f}% accuracy")
     if delta_rlm > 0:
         print(f"  🏆 Waggle aggregate beats RLM paper baseline by {delta_rlm:.1f}%")
     else:
-        print(f"  ⚠  Waggle ({s2_all['accuracy_pct']}%) vs RLM paper ({RLM_REPORTED_ACCURACY}%) — delta {delta_rlm:.1f}%")
+        print(
+            f"  ⚠  Waggle ({s2_all['accuracy_pct']}%) vs RLM paper ({RLM_REPORTED_ACCURACY}%) — delta {delta_rlm:.1f}%"
+        )
 
     # --- Save JSON ---
     out = {

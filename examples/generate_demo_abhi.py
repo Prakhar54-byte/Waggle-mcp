@@ -11,6 +11,7 @@ Re-run to regenerate:
 
 The script writes to examples/demo.abhi relative to the repo root.
 """
+
 from __future__ import annotations
 
 import shutil

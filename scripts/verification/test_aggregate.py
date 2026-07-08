@@ -19,11 +19,7 @@ def main():
         graph = MemoryGraph(db_path=db_path)
 
         # Call the new aggregate method
-        result = graph.aggregate(
-            query="",
-            max_nodes=100,
-            max_depth=1
-        )
+        result = graph.aggregate(query="", max_nodes=100, max_depth=1)
 
         print(f"Success! Aggregate retrieved {len(result.nodes)} nodes.")
         if result.nodes:
@@ -32,6 +28,7 @@ def main():
 
     except Exception as e:
         print(f"Error testing aggregate: {e}")
+
 
 if __name__ == "__main__":
     main()

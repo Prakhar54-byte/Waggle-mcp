@@ -27,18 +27,20 @@ for i in range(20):
         else:
             text = "This is an abstract concept or general entity."
 
-        examples.append(f"Example {j+1}:\nText: {text}\nUser: {u}\nDate: 2026-04-{random.randint(1,28):02d}")
+        examples.append(f"Example {j + 1}:\nText: {text}\nUser: {u}\nDate: 2026-04-{random.randint(1, 28):02d}")
 
     context_text = "\n\n".join(examples)
     question = "Each of the questions can be labelled as one of the labels: description and abstract concept, entity, human being, numeric value, location, abbreviation.\n\nIn the above data, list all pairs of user IDs (no duplicate pairs, list lower ID first) where both users have at least one instance with a numeric value or location.\n\nIn your answer, list all pairs in the format (user_id_1, user_id_2), separated by newlines."
 
-    cases.append({
-        "context_window_text": context_text,
-        "question": question,
-        "answer": gold_pairs,
-        "answer_type": "list",
-        "task_group": "oolong-pairs"
-    })
+    cases.append(
+        {
+            "context_window_text": context_text,
+            "question": question,
+            "answer": gold_pairs,
+            "answer_type": "list",
+            "task_group": "oolong-pairs",
+        }
+    )
 
 with open("benchmarks/data/oolong_20.jsonl", "w") as f:
     for c in cases:

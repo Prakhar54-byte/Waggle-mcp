@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+
 def patch_graph_py():
     path = ROOT / "src/waggle/graph.py"
     with path.open("r") as f:
@@ -146,6 +147,7 @@ def patch_graph_py():
     else:
         print("graph.py already patched")
 
+
 def patch_neo4j_graph_py():
     path = ROOT / "src/waggle/neo4j_graph.py"
     with path.open("r") as f:
@@ -289,8 +291,8 @@ def patch_server_py():
             types.Tool(
                 name="query_graph","""
 
-    if "name=\"aggregate_graph\"" not in content:
-        content = content.replace("            types.Tool(\n                name=\"query_graph\",", tool_def)
+    if 'name="aggregate_graph"' not in content:
+        content = content.replace('            types.Tool(\n                name="query_graph",', tool_def)
 
     tool_handler = """
                 elif name == "aggregate_graph":
@@ -310,8 +312,8 @@ def patch_server_py():
                     )
                 elif name == "query_graph":"""
 
-    if "elif name == \"aggregate_graph\":" not in content:
-        content = content.replace("                elif name == \"query_graph\":", tool_handler)
+    if 'elif name == "aggregate_graph":' not in content:
+        content = content.replace('                elif name == "query_graph":', tool_handler)
 
     tool_asserts = """
         if name == "aggregate_graph":
@@ -320,12 +322,13 @@ def patch_server_py():
             self._assert_payload_size(arguments.get("project", ""), limit, "aggregate_graph.project")
             self._assert_payload_size(arguments.get("session_id", ""), limit, "aggregate_graph.session_id")
         if name == "query_graph":"""
-    if "name == \"aggregate_graph\"" not in content:
-        content = content.replace("        if name == \"query_graph\":", tool_asserts)
+    if 'name == "aggregate_graph"' not in content:
+        content = content.replace('        if name == "query_graph":', tool_asserts)
 
     with path.open("w") as f:
         f.write(content)
     print("Patched server.py")
+
 
 if __name__ == "__main__":
     patch_graph_py()

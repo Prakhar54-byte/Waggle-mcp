@@ -9,6 +9,7 @@ This script follows the OOLONG-Pairs benchmark shape described in the RLM paper:
 It does NOT implement recursive language models. It is a Waggle-vs-full-context
 benchmark over the OOLONG-Pairs task family.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -139,7 +140,7 @@ def call_groq(client: groq.Groq, prompt: str, *, model: str, max_tokens: int) ->
         except groq.RateLimitError as exc:
             message = str(exc)
             wait_match = re.search(r"try again in ([0-9.]+)s", message)
-            wait_seconds = float(wait_match.group(1)) + 1.0 if wait_match else min(60.0, 5.0 * (2 ** attempt))
+            wait_seconds = float(wait_match.group(1)) + 1.0 if wait_match else min(60.0, 5.0 * (2**attempt))
             print(f"\n[rate limit] sleeping {wait_seconds:.1f}s before retry", flush=True)
             time.sleep(wait_seconds)
     return ""
@@ -308,10 +309,7 @@ def main() -> int:
         "max_tokens": args.max_tokens,
         "limit": args.limit,
         "summaries": summaries,
-        "cases": {
-            mode: [asdict(case) for case in cases]
-            for mode, cases in results_by_mode.items()
-        },
+        "cases": {mode: [asdict(case) for case in cases] for mode, cases in results_by_mode.items()},
     }
     Path(args.output).write_text(json.dumps(output, indent=2), encoding="utf-8")
     print(f"\nSaved report: {args.output}")

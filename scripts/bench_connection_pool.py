@@ -86,7 +86,7 @@ def e2e_once() -> tuple[float, float]:
 
         @contextmanager
         def fresh_checkout():
-            conn = graph._connect() # noqa: F821
+            conn = graph._connect()  # noqa: F821
             try:
                 yield conn
                 conn.commit()

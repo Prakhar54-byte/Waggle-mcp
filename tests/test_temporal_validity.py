@@ -69,10 +69,10 @@ def _utc(dt: datetime) -> datetime:
 # ---------------------------------------------------------------------------
 
 NOW = datetime.now(UTC)
-T0 = NOW - timedelta(hours=2)  # two hours ago
-T1 = NOW - timedelta(hours=1)  # one hour ago  (valid_to in the past)
-T_HALF = NOW - timedelta(minutes=90)  # between T0 and T1
-T2 = NOW + timedelta(hours=1)  # one hour in the future
+T0 = NOW - timedelta(days=365)  # one year ago
+T1 = NOW - timedelta(days=30)  # one month ago (valid_to in the past)
+T_HALF = NOW - timedelta(days=180)  # between T0 and T1
+T2 = NOW + timedelta(days=365)  # one year in the future
 
 
 # ---------------------------------------------------------------------------

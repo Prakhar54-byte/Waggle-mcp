@@ -7,13 +7,14 @@ Checks:
   4. LLM predictions vs gold for every case
   5. Whether 'user' task 100% is real reasoning or lucky guessing
 """
+
 import json
 from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-REAL_DATASET  = ROOT / "benchmarks/data/oolong_real_30.jsonl"
-REPORT_JSON   = ROOT / "benchmarks/data/llm_eval_report.json"
+REAL_DATASET = ROOT / "benchmarks/data/oolong_real_30.jsonl"
+REPORT_JSON = ROOT / "benchmarks/data/llm_eval_report.json"
 
 # ---------------------------------------------------------------------------
 # Load data
@@ -33,7 +34,7 @@ print("1. GOLD ANSWER DISTRIBUTION")
 print("=" * 70)
 all_answers = []
 for e in examples:
-    ans = e['answer']
+    ans = e["answer"]
     if isinstance(ans, list):
         all_answers.extend(str(x).strip().lower() for x in ans)
     else:
@@ -61,9 +62,9 @@ print("2. GOLD ANSWERS BY TASK GROUP")
 print("=" * 70)
 for grp in ("user", "counting"):
     grp_examples = [e for e in examples if e["task_group"] == grp]
-    grp_answers   = []
+    grp_answers = []
     for e in grp_examples:
-        ans = e['answer']
+        ans = e["answer"]
         if isinstance(ans, list):
             grp_answers.extend(str(x).strip().lower() for x in ans)
         else:
@@ -71,7 +72,7 @@ for grp in ("user", "counting"):
     cnt2 = Counter(grp_answers)
     print(f"\n  [{grp.upper()}] {len(grp_examples)} cases, {len(grp_answers)} gold labels")
     for val, c in cnt2.most_common(10):
-        print(f"    {val!r:<30} {c:>3}  ({c/len(grp_answers)*100:.0f}%)")
+        print(f"    {val!r:<30} {c:>3}  ({c / len(grp_answers) * 100:.0f}%)")
 
 # ---------------------------------------------------------------------------
 # 3. Check for labelled-text leakage
@@ -100,7 +101,7 @@ if report:
     print("=" * 70)
     synth_cases = [c for c in report["mode2"]["cases"] if c["dataset"] == "synth"]
     print(f"\n  {'ID':<12} {'Task':<10} {'EM':<4} {'Gold':<35} {'Predicted':<50}")
-    print(f"  {'-'*110}")
+    print(f"  {'-' * 110}")
     for c in synth_cases:
         em = "✅" if c["exact_match"] else "❌"
         gold = str(c["gold_answer"])[:35]
@@ -136,13 +137,15 @@ if report:
     # Compute majority-class baseline per case
     majority_correct = 0
     for e in examples:
-        ans = e['answer']
+        ans = e["answer"]
         ans_str = str(ans[0] if isinstance(ans, list) else ans).strip().lower()
         if ans_str == majority_val:
             majority_correct += 1
     maj_pct = majority_correct / len(examples) * 100
-    print(f"\n  Majority-class baseline (always say '{majority_val}'): "
-          f"{majority_correct}/{len(examples)} = {maj_pct:.1f}%")
+    print(
+        f"\n  Majority-class baseline (always say '{majority_val}'): "
+        f"{majority_correct}/{len(examples)} = {maj_pct:.1f}%"
+    )
 
     if abs(66.7 - maj_pct) < 5:
         print(f"\n  🚨 OVERFITTING ALERT: LLM score ({66.7}%) ≈ majority-class baseline ({maj_pct:.1f}%)")

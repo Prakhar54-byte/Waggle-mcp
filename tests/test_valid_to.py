@@ -70,9 +70,9 @@ def utc(dt: datetime) -> datetime:
 # ---------------------------------------------------------------------------
 
 NOW = datetime.now(UTC)
-T0 = NOW - timedelta(hours=3)  # 3 h ago  — "created"
-T1 = NOW - timedelta(hours=1)  # 1 h ago  — "expired"
-T2 = NOW + timedelta(hours=1)  # 1 h from now — "future"
+T0 = NOW - timedelta(days=365)  # 365 days ago  — "created"
+T1 = NOW - timedelta(days=30)  # 30 days ago  — "expired"
+T2 = NOW + timedelta(days=365)  # 365 days from now — "future"
 
 
 # ---------------------------------------------------------------------------

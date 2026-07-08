@@ -25,5 +25,6 @@ def verify():
         print("SUCCESS: Model is using real transformer (baked-in)!")
         sys.exit(0)
 
+
 if __name__ == "__main__":
     verify()

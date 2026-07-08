@@ -17,6 +17,7 @@ python scripts/load_test.py \\
 
 Requirements: pip install httpx
 """
+
 from __future__ import annotations
 
 import argparse
@@ -153,18 +154,18 @@ class Stats:
         print(f"Errors     : {len(errors)}  ({100 * len(errors) / max(total, 1):.1f}%)")
         print()
         print("Latency (all):")
-        print(f"  p50 = {pct(all_lat, 50)*1000:.1f}ms")
-        print(f"  p95 = {pct(all_lat, 95)*1000:.1f}ms")
-        print(f"  p99 = {pct(all_lat, 99)*1000:.1f}ms")
-        print(f"  max = {max(latencies, default=0)*1000:.1f}ms")
+        print(f"  p50 = {pct(all_lat, 50) * 1000:.1f}ms")
+        print(f"  p95 = {pct(all_lat, 95) * 1000:.1f}ms")
+        print(f"  p99 = {pct(all_lat, 99) * 1000:.1f}ms")
+        print(f"  max = {max(latencies, default=0) * 1000:.1f}ms")
         if write_lat:
             print("Latency (writes):")
-            print(f"  p50 = {pct(write_lat, 50)*1000:.1f}ms")
-            print(f"  p95 = {pct(write_lat, 95)*1000:.1f}ms")
+            print(f"  p50 = {pct(write_lat, 50) * 1000:.1f}ms")
+            print(f"  p95 = {pct(write_lat, 95) * 1000:.1f}ms")
         if read_lat:
             print("Latency (reads):")
-            print(f"  p50 = {pct(read_lat, 50)*1000:.1f}ms")
-            print(f"  p95 = {pct(read_lat, 95)*1000:.1f}ms")
+            print(f"  p50 = {pct(read_lat, 50) * 1000:.1f}ms")
+            print(f"  p95 = {pct(read_lat, 95) * 1000:.1f}ms")
         if errors:
             print()
             print("Error breakdown:")
@@ -261,7 +262,9 @@ def main() -> None:
     parser.add_argument("--api-key", required=True, dest="api_key", help="X-API-Key value")
     parser.add_argument("--duration", type=float, default=60.0, help="Test duration in seconds")
     parser.add_argument("--concurrency", type=int, default=10, help="Number of concurrent workers")
-    parser.add_argument("--write-ratio", type=float, default=0.3, dest="write_ratio", help="Fraction of requests that are writes [0-1]")
+    parser.add_argument(
+        "--write-ratio", type=float, default=0.3, dest="write_ratio", help="Fraction of requests that are writes [0-1]"
+    )
     args = parser.parse_args()
     asyncio.run(run(args))
 

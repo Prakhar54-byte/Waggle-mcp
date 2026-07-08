@@ -124,7 +124,7 @@ def _write_bundle(bundle_root: Path, output_dir: Path) -> list[Path]:
             info = ZipInfo(relative_path.as_posix())
             info.date_time = FIXED_TIMESTAMP
             info.compress_type = ZIP_DEFLATED
-            info.external_attr = (_zip_mode(path) << 16)
+            info.external_attr = _zip_mode(path) << 16
             archive.writestr(info, path.read_bytes())
 
     checksum_path = archive_path.with_suffix(f"{archive_path.suffix}.sha256")

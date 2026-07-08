@@ -42,8 +42,14 @@ def extract_pairs_from_chunks(chunks):
                 # Check for location/numeric value in text
                 has_target = False
                 target_texts = [
-                    "temperature is", "sold 1000", "distance is", "costs 10 dollars",
-                    "Paris is", "New York", "Mount Everest", "park is downtown"
+                    "temperature is",
+                    "sold 1000",
+                    "distance is",
+                    "costs 10 dollars",
+                    "Paris is",
+                    "New York",
+                    "Mount Everest",
+                    "park is downtown",
                 ]
                 if any(t in text for t in target_texts):
                     has_target = True
@@ -62,10 +68,12 @@ def extract_pairs_from_chunks(chunks):
     target_users.sort()
     pairs = []
     from itertools import combinations
+
     for u1, u2 in combinations(target_users, 2):
         pairs.append(f"({u1}, {u2})")
 
     return " | ".join(pairs)
+
 
 def main():
     dataset_path = ROOT / "benchmarks/data/oolong_synthetic_20.jsonl"
@@ -79,10 +87,14 @@ def main():
     class DummyEmbeddingModel:
         def embed(self, text: str):
             import numpy as np
+
             return np.zeros(384, dtype=np.float32)
+
         def from_bytes(self, b):
             import numpy as np
+
             return np.zeros(384, dtype=np.float32)
+
         def to_bytes(self, arr):
             return b""
 
@@ -131,8 +143,9 @@ def main():
         print(f"Case {idx:02d}: {status} (Retrieved {len(chunks)} chunks)")
 
     print("-" * 50)
-    print(f"Final Accuracy: {correct_count}/{len(examples)} ({(correct_count/len(examples))*100:.1f}%)")
+    print(f"Final Accuracy: {correct_count}/{len(examples)} ({(correct_count / len(examples)) * 100:.1f}%)")
     print("Map-Reduce pattern over Waggle's aggregate() successfully solved OOLONG!")
+
 
 if __name__ == "__main__":
     main()

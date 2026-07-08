@@ -6,6 +6,7 @@ Examples:
     PYTHONPATH=src .venv/bin/python scripts/benchmark_extraction.py --extraction-backend regex
     PYTHONPATH=src .venv/bin/python scripts/benchmark_extraction.py --output benchmarks/output/latest.json
 """
+
 from __future__ import annotations
 
 import os

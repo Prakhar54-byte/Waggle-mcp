@@ -6,6 +6,7 @@ Fixes:
   3. Strips preamble instruction from context so LLM must classify text itself
   4. Saves to oolong_real_clean_30.jsonl
 """
+
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -14,8 +15,9 @@ from datasets import load_dataset
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT_PATH = ROOT / "benchmarks/data/oolong_real_clean_30.jsonl"
-TARGET_PER_GROUP = 15   # 15 user + 15 counting = 30 total
-MAX_CTX_WORDS   = 2000  # keep context manageable
+TARGET_PER_GROUP = 15  # 15 user + 15 counting = 30 total
+MAX_CTX_WORDS = 2000  # keep context manageable
+
 
 def strip_preamble(text: str) -> str:
     """
@@ -32,6 +34,7 @@ def strip_preamble(text: str) -> str:
     if data_start is not None:
         return "\n".join(lines[data_start:]).strip()
     return text.strip()
+
 
 def main():
     print("Streaming oolong-synth validation split...")
@@ -58,28 +61,29 @@ def main():
             continue  # skip huge contexts for now
 
         seen_cw[tg].add(cw_id)
-        collected[tg].append({
-            "context_window_id": f"cw-clean-{cw_id}-{tg}",
-            "raw_context_window_id": cw_id,
-            "context_window_text": clean_ctx,
-            "question": s["question"],
-            "answer": s["answer"],
-            "answer_type": str(s["answer_type"]),
-            "task_group": tg,
-            "task": str(s["task"]),
-            "ctx_words": ctx_words,
-        })
+        collected[tg].append(
+            {
+                "context_window_id": f"cw-clean-{cw_id}-{tg}",
+                "raw_context_window_id": cw_id,
+                "context_window_text": clean_ctx,
+                "question": s["question"],
+                "answer": s["answer"],
+                "answer_type": str(s["answer_type"]),
+                "task_group": tg,
+                "task": str(s["task"]),
+                "ctx_words": ctx_words,
+            }
+        )
 
         done = len(collected["user"]) + len(collected["counting"])
         if done % 5 == 0:
             print(f"  Collected: user={len(collected['user'])} counting={len(collected['counting'])}")
 
-        if (len(collected["user"]) >= TARGET_PER_GROUP and
-                len(collected["counting"]) >= TARGET_PER_GROUP):
+        if len(collected["user"]) >= TARGET_PER_GROUP and len(collected["counting"]) >= TARGET_PER_GROUP:
             break
 
     # Balance and assign IDs
-    user_rows    = collected["user"][:TARGET_PER_GROUP]
+    user_rows = collected["user"][:TARGET_PER_GROUP]
     counting_rows = collected["counting"][:TARGET_PER_GROUP]
     all_rows = user_rows + counting_rows
 
@@ -97,7 +101,7 @@ def main():
     print(f"\n✅ Saved {len(out)} examples → {OUT_PATH}")
     print(f"   Unique context windows: {total_unique_cw}")
     print(f"   task_group dist: user={len(user_rows)}, counting={len(counting_rows)}")
-    print(f"   Avg ctx words: {sum(r['ctx_words'] for r in out)//len(out)}")
+    print(f"   Avg ctx words: {sum(r['ctx_words'] for r in out) // len(out)}")
 
     # Show sample stripped context
     sample = out[0]
@@ -107,6 +111,7 @@ def main():
     print(sample["question"])
     print("\n--- Sample gold answer ---")
     print(sample["answer"])
+
 
 if __name__ == "__main__":
     main()

@@ -22,9 +22,7 @@ from waggle.token_efficiency_benchmark import (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Benchmark Waggle graph-memory retrieval against vanilla chunked-vector RAG on token efficiency."
-        )
+        description=("Benchmark Waggle graph-memory retrieval against vanilla chunked-vector RAG on token efficiency.")
     )
     parser.add_argument(
         "--mode",

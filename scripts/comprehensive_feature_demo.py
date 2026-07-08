@@ -96,25 +96,22 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
             text=True,
             timeout=30,
         )
-        features_output = (
-        (cli.stdout or "")
-        + ("\n" + cli.stderr if cli.stderr else "")
-        )
+        features_output = (cli.stdout or "") + ("\n" + cli.stderr if cli.stderr else "")
 
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(
-        "waggle.server features command timed out after 30 seconds.\n"
-        f"Stdout:\n{exc.stdout or ''}\n"
-        f"Stderr:\n{exc.stderr or ''}"
-    ) from exc
+            "waggle.server features command timed out after 30 seconds.\n"
+            f"Stdout:\n{exc.stdout or ''}\n"
+            f"Stderr:\n{exc.stderr or ''}"
+        ) from exc
 
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(
-        "waggle.server features command failed.\n"
-        f"Return code: {exc.returncode}\n"
-        f"Stdout:\n{exc.stdout or ''}\n"
-        f"Stderr:\n{exc.stderr or ''}"
-    ) from exc
+            "waggle.server features command failed.\n"
+            f"Return code: {exc.returncode}\n"
+            f"Stdout:\n{exc.stdout or ''}\n"
+            f"Stderr:\n{exc.stderr or ''}"
+        ) from exc
 
     server_params = StdioServerParameters(
         command=sys.executable,
@@ -126,85 +123,127 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             init = await session.initialize()
-            logs.append({
-                "tool": "initialize",
-                "arguments": {},
-                "is_error": False,
-                "text": f"Connected to {init.serverInfo.name} {init.serverInfo.version}",
-                "structured": {"server": init.serverInfo.name, "version": init.serverInfo.version},
-            })
+            logs.append(
+                {
+                    "tool": "initialize",
+                    "arguments": {},
+                    "is_error": False,
+                    "text": f"Connected to {init.serverInfo.name} {init.serverInfo.version}",
+                    "structured": {"server": init.serverInfo.name, "version": init.serverInfo.version},
+                }
+            )
 
             tools_result = await session.list_tools()
-            logs.append({
-                "tool": "list_tools",
-                "arguments": {},
-                "is_error": False,
-                "text": f"{len(tools_result.tools)} tools available",
-                "structured": {"tool_names": [t.name for t in tools_result.tools]},
-            })
+            logs.append(
+                {
+                    "tool": "list_tools",
+                    "arguments": {},
+                    "is_error": False,
+                    "text": f"{len(tools_result.tools)} tools available",
+                    "structured": {"tool_names": [t.name for t in tools_result.tools]},
+                }
+            )
 
             resources_result = await session.list_resources()
-            logs.append({
-                "tool": "list_resources",
-                "arguments": {},
-                "is_error": False,
-                "text": f"{len(resources_result.resources)} resources available",
-                "structured": {"resources": [str(r.uri) for r in resources_result.resources]},
-            })
+            logs.append(
+                {
+                    "tool": "list_resources",
+                    "arguments": {},
+                    "is_error": False,
+                    "text": f"{len(resources_result.resources)} resources available",
+                    "structured": {"resources": [str(r.uri) for r in resources_result.resources]},
+                }
+            )
 
             # Core ingestion data across multiple contexts
-            logs.append(await call_tool(session, "observe_conversation", {
-                "user_message": "Should we use PostgreSQL or MySQL for production?",
-                "assistant_response": "Decision: use PostgreSQL for production due to reliability and team readiness.",
-                "agent_id": "demo-agent",
-                "project": "waggle-demo",
-                "session_id": "s1",
-            }))
-            logs.append(await call_tool(session, "observe_conversation", {
-                "user_message": "Actually we might switch to MySQL because team familiarity is higher.",
-                "assistant_response": "Noted: potential switch to MySQL due to team familiarity.",
-                "agent_id": "demo-agent",
-                "project": "waggle-demo",
-                "session_id": "s2",
-            }))
-            logs.append(await call_tool(session, "observe_conversation", {
-                "user_message": "Frontend default should be dark mode and auth token expiry is 15 minutes.",
-                "assistant_response": "Stored preference for dark mode and JWT expiry = 15 minutes.",
-                "agent_id": "demo-agent",
-                "project": "waggle-demo",
-                "session_id": "s3",
-            }))
+            logs.append(
+                await call_tool(
+                    session,
+                    "observe_conversation",
+                    {
+                        "user_message": "Should we use PostgreSQL or MySQL for production?",
+                        "assistant_response": "Decision: use PostgreSQL for production due to reliability and team readiness.",
+                        "agent_id": "demo-agent",
+                        "project": "waggle-demo",
+                        "session_id": "s1",
+                    },
+                )
+            )
+            logs.append(
+                await call_tool(
+                    session,
+                    "observe_conversation",
+                    {
+                        "user_message": "Actually we might switch to MySQL because team familiarity is higher.",
+                        "assistant_response": "Noted: potential switch to MySQL due to team familiarity.",
+                        "agent_id": "demo-agent",
+                        "project": "waggle-demo",
+                        "session_id": "s2",
+                    },
+                )
+            )
+            logs.append(
+                await call_tool(
+                    session,
+                    "observe_conversation",
+                    {
+                        "user_message": "Frontend default should be dark mode and auth token expiry is 15 minutes.",
+                        "assistant_response": "Stored preference for dark mode and JWT expiry = 15 minutes.",
+                        "agent_id": "demo-agent",
+                        "project": "waggle-demo",
+                        "session_id": "s3",
+                    },
+                )
+            )
 
-            custom1 = await call_tool(session, "store_node", {
-                "label": "API rate limiting",
-                "content": "Apply 100 req/min baseline and burst controls.",
-                "node_type": "concept",
-                "tags": ["api", "ops"],
-            })
+            custom1 = await call_tool(
+                session,
+                "store_node",
+                {
+                    "label": "API rate limiting",
+                    "content": "Apply 100 req/min baseline and burst controls.",
+                    "node_type": "concept",
+                    "tags": ["api", "ops"],
+                },
+            )
             logs.append(custom1)
 
-            custom2 = await call_tool(session, "store_node", {
-                "label": "Bench preference",
-                "content": "Use Python for benchmark harness scripts.",
-                "node_type": "preference",
-                "tags": ["benchmark", "python"],
-            })
+            custom2 = await call_tool(
+                session,
+                "store_node",
+                {
+                    "label": "Bench preference",
+                    "content": "Use Python for benchmark harness scripts.",
+                    "node_type": "preference",
+                    "tags": ["benchmark", "python"],
+                },
+            )
             logs.append(custom2)
 
             source_id = custom1.get("structured", {}).get("id", "")
             target_id = custom2.get("structured", {}).get("id", "")
             if source_id and target_id:
-                logs.append(await call_tool(session, "store_edge", {
-                    "source_id": source_id,
-                    "target_id": target_id,
-                    "relationship": "relates_to",
-                    "weight": 0.72,
-                }))
+                logs.append(
+                    await call_tool(
+                        session,
+                        "store_edge",
+                        {
+                            "source_id": source_id,
+                            "target_id": target_id,
+                            "relationship": "relates_to",
+                            "weight": 0.72,
+                        },
+                    )
+                )
 
-            decomp = await call_tool(session, "decompose_and_store", {
-                "content": "- Add integration tests\n- Keep dark mode default\n- Keep PostgreSQL migration scripts reviewed weekly",
-                "context": "Milestone backlog",
-            })
+            decomp = await call_tool(
+                session,
+                "decompose_and_store",
+                {
+                    "content": "- Add integration tests\n- Keep dark mode default\n- Keep PostgreSQL migration scripts reviewed weekly",
+                    "context": "Milestone backlog",
+                },
+            )
             logs.append(decomp)
 
             # Multi-input graph retrieval tests
@@ -217,26 +256,44 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
             ]
             for mode in ["graph", "replay", "fusion"]:
                 for q in query_inputs:
-                    logs.append(await call_tool(session, "query_graph", {
-                        "query": q,
-                        "max_nodes": 10,
-                        "max_depth": 2,
-                        "retrieval_mode": mode,
-                        "project": "waggle-demo",
-                    }))
+                    logs.append(
+                        await call_tool(
+                            session,
+                            "query_graph",
+                            {
+                                "query": q,
+                                "max_nodes": 10,
+                                "max_depth": 2,
+                                "retrieval_mode": mode,
+                                "project": "waggle-demo",
+                            },
+                        )
+                    )
 
             # Scope/history/timeline/related
             if source_id:
                 logs.append(await call_tool(session, "get_related", {"node_id": source_id, "max_depth": 2}))
                 logs.append(await call_tool(session, "get_node_history", {"node_id": source_id, "max_depth": 2}))
-                logs.append(await call_tool(session, "timeline", {"node_id": source_id, "limit": 20, "max_depth": 2, "include_evidence": True}))
+                logs.append(
+                    await call_tool(
+                        session,
+                        "timeline",
+                        {"node_id": source_id, "limit": 20, "max_depth": 2, "include_evidence": True},
+                    )
+                )
 
-            logs.append(await call_tool(session, "timeline", {
-                "query": "database decision",
-                "limit": 20,
-                "max_depth": 2,
-                "include_evidence": True,
-            }))
+            logs.append(
+                await call_tool(
+                    session,
+                    "timeline",
+                    {
+                        "query": "database decision",
+                        "limit": 20,
+                        "max_depth": 2,
+                        "include_evidence": True,
+                    },
+                )
+            )
 
             logs.append(await call_tool(session, "list_context_scopes", {}))
             logs.append(await call_tool(session, "list_conflicts", {"include_resolved": False, "limit": 20}))
@@ -246,26 +303,42 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
             if unresolved:
                 edge_id = unresolved[0].get("edge_id") or unresolved[0].get("id") or ""
                 if edge_id:
-                    logs.append(await call_tool(session, "resolve_conflict", {
-                        "edge_id": edge_id,
-                        "resolution_note": "Resolved in demo: retain latest as active, keep history.",
-                    }))
+                    logs.append(
+                        await call_tool(
+                            session,
+                            "resolve_conflict",
+                            {
+                                "edge_id": edge_id,
+                                "resolution_note": "Resolved in demo: retain latest as active, keep history.",
+                            },
+                        )
+                    )
                     logs.append(await call_tool(session, "list_conflicts", {"include_resolved": True, "limit": 20}))
 
             # Updates and deletes
             if target_id:
-                logs.append(await call_tool(session, "update_node", {
-                    "node_id": target_id,
-                    "content": "Use Python 3.11+ for benchmark harness scripts.",
-                    "tags": ["benchmark", "python", "updated"],
-                }))
+                logs.append(
+                    await call_tool(
+                        session,
+                        "update_node",
+                        {
+                            "node_id": target_id,
+                            "content": "Use Python 3.11+ for benchmark harness scripts.",
+                            "tags": ["benchmark", "python", "updated"],
+                        },
+                    )
+                )
 
-                disposable = await call_tool(session, "store_node", {
-                    "label": "Disposable note",
-                    "content": "Temporary node for delete verification",
-                    "node_type": "note",
-                    "tags": ["tmp"],
-                })
+                disposable = await call_tool(
+                    session,
+                    "store_node",
+                    {
+                        "label": "Disposable note",
+                        "content": "Temporary node for delete verification",
+                        "node_type": "note",
+                        "tags": ["tmp"],
+                    },
+                )
                 logs.append(disposable)
                 disposable_id = disposable.get("structured", {}).get("id", "")
                 if disposable_id:
@@ -278,30 +351,54 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
             logs.append(await call_tool(session, "get_stats", {}))
 
             # Exports
-            logs.append(await call_tool(session, "export_graph_html", {
-                "output_path": str(GRAPH_HTML),
-                "include_physics": False,
-            }))
-            logs.append(await call_tool(session, "export_graph_backup", {
-                "output_path": str(GRAPH_BACKUP),
-            }))
-            logs.append(await call_tool(session, "export_context_bundle", {
-                "mode": "query",
-                "query": "database decision and preferences",
-                "project": "waggle-demo",
-                "retrieval_mode": "fusion",
-                "format": "both",
-                "output_path": str(CONTEXT_DIR),
-                "max_nodes": 20,
-                "max_depth": 2,
-                "include_edges": True,
-                "include_timestamps": True,
-                "audience": "human",
-            }))
-            logs.append(await call_tool(session, "export_markdown_vault", {
-                "root_path": str(VAULT_DIR),
-                "project": "waggle-demo",
-            }))
+            logs.append(
+                await call_tool(
+                    session,
+                    "export_graph_html",
+                    {
+                        "output_path": str(GRAPH_HTML),
+                        "include_physics": False,
+                    },
+                )
+            )
+            logs.append(
+                await call_tool(
+                    session,
+                    "export_graph_backup",
+                    {
+                        "output_path": str(GRAPH_BACKUP),
+                    },
+                )
+            )
+            logs.append(
+                await call_tool(
+                    session,
+                    "export_context_bundle",
+                    {
+                        "mode": "query",
+                        "query": "database decision and preferences",
+                        "project": "waggle-demo",
+                        "retrieval_mode": "fusion",
+                        "format": "both",
+                        "output_path": str(CONTEXT_DIR),
+                        "max_nodes": 20,
+                        "max_depth": 2,
+                        "include_edges": True,
+                        "include_timestamps": True,
+                        "audience": "human",
+                    },
+                )
+            )
+            logs.append(
+                await call_tool(
+                    session,
+                    "export_markdown_vault",
+                    {
+                        "root_path": str(VAULT_DIR),
+                        "project": "waggle-demo",
+                    },
+                )
+            )
 
     # Import validation in fresh db
     restore_params = StdioServerParameters(
@@ -316,12 +413,18 @@ async def run_demo() -> tuple[list[dict[str, Any]], str]:
             logs.append(await call_tool(session, "import_graph_backup", {"input_path": str(GRAPH_BACKUP)}))
             logs.append(await call_tool(session, "get_stats", {}))
             logs.append(await call_tool(session, "import_markdown_vault", {"root_path": str(VAULT_DIR)}))
-            logs.append(await call_tool(session, "query_graph", {
-                "query": "database decision",
-                "max_nodes": 10,
-                "max_depth": 2,
-                "retrieval_mode": "graph",
-            }))
+            logs.append(
+                await call_tool(
+                    session,
+                    "query_graph",
+                    {
+                        "query": "database decision",
+                        "max_nodes": 10,
+                        "max_depth": 2,
+                        "retrieval_mode": "graph",
+                    },
+                )
+            )
 
     return logs, features_output
 
@@ -388,7 +491,9 @@ def build_report(logs: list[dict[str, Any]], features_output: str, model_name: s
     lines.append("")
     lines.append("## Notes")
     lines.append("")
-    lines.append("- Retrieval was tested with multiple natural-language inputs and across `graph`, `replay`, and `fusion` retrieval modes.")
+    lines.append(
+        "- Retrieval was tested with multiple natural-language inputs and across `graph`, `replay`, and `fusion` retrieval modes."
+    )
     lines.append("- Backup export/import and markdown vault export/import were validated in a fresh database instance.")
     lines.append(f"- Demo used `WAGGLE_MODEL={model_name}`.")
     return "\n".join(lines) + "\n"

@@ -258,9 +258,15 @@ def _verify_signature(binary: Path, target: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build and validate Codex plugin bundled Waggle runtimes.")
-    parser.add_argument("--build-current", action="store_true", help="Build the current platform binary with PyInstaller.")
-    parser.add_argument("--require-artifacts", action="store_true", help="Fail if any platform runtime binary is missing.")
-    parser.add_argument("--probe", action="store_true", help="Run the --server-info startup probe for present artifacts.")
+    parser.add_argument(
+        "--build-current", action="store_true", help="Build the current platform binary with PyInstaller."
+    )
+    parser.add_argument(
+        "--require-artifacts", action="store_true", help="Fail if any platform runtime binary is missing."
+    )
+    parser.add_argument(
+        "--probe", action="store_true", help="Run the --server-info startup probe for present artifacts."
+    )
     parser.add_argument("--verify-signatures", action="store_true", help="Verify macOS and Windows code signatures.")
     parser.add_argument(
         "--allow-experimental-python",

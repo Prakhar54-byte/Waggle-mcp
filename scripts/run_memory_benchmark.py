@@ -204,9 +204,9 @@ def main() -> int:
     print(f"\n[cache] hits={hits} misses={misses}")
     print("\n=== Summary ===")
     for arm, bucket in summary.items():
-        print(f"  {arm:<14} acc={bucket['accuracy']*100:.1f}%  ({bucket['correct']}/{bucket['total']})")
+        print(f"  {arm:<14} acc={bucket['accuracy'] * 100:.1f}%  ({bucket['correct']}/{bucket['total']})")
         for question_type, entry in bucket["by_question_type"].items():
-            print(f"     · {question_type:<22} {entry['correct']}/{entry['total']}  ({entry['accuracy']*100:.1f}%)")
+            print(f"     · {question_type:<22} {entry['correct']}/{entry['total']}  ({entry['accuracy'] * 100:.1f}%)")
     print(f"\n[done] wrote {args.output}")
     return 0
 

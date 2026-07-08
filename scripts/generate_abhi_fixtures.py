@@ -16,6 +16,7 @@ The six fixtures written to tests/fixtures/abhi/:
   with-dangling-edges.abhi — at least one edge whose target node is absent
                              (intentionally invalid)
 """
+
 from __future__ import annotations
 
 import sys
@@ -83,10 +84,7 @@ def generate_single_node() -> None:
 def generate_linear_history() -> None:
     """10 nodes, 9 edges in a linear sequence (n0→n1→…→n9)."""
     nodes = [_node(f"Node {i}", f"Content of node {i}.") for i in range(10)]
-    edges = [
-        _edge(nodes[i]["id"], nodes[i + 1]["id"], "relates_to")
-        for i in range(9)
-    ]
+    edges = [_edge(nodes[i]["id"], nodes[i + 1]["id"], "relates_to") for i in range(9)]
     snapshot = _snapshot(nodes=nodes, edges=edges)
     write_abhi_document(snapshot, output_path=FIXTURES_DIR / "linear-history.abhi")
     print("  ✓ linear-history.abhi")
@@ -143,9 +141,9 @@ def generate_with_contradictions() -> None:
     n4 = _node("Claim D", "Water is dry.")
 
     edges = [
-        _edge(n2["id"], n1["id"], "contradicts"),   # B contradicts A
-        _edge(n4["id"], n3["id"], "contradicts"),   # D contradicts C
-        _edge(n1["id"], n3["id"], "relates_to"),    # A relates to C
+        _edge(n2["id"], n1["id"], "contradicts"),  # B contradicts A
+        _edge(n4["id"], n3["id"], "contradicts"),  # D contradicts C
+        _edge(n1["id"], n3["id"], "relates_to"),  # A relates to C
     ]
 
     snapshot = _snapshot(nodes=[n1, n2, n3, n4], edges=edges)

@@ -9,6 +9,7 @@ Compares three retrieval/answering modes:
 Run:
     PYTHONPATH=src .venv/bin/python3 scripts/oolong/run_e2e_eval.py
 """
+
 import ast
 import json
 import os
@@ -49,22 +50,26 @@ TARGET_TEXTS = NUMERIC_TEXTS | LOCATION_TEXTS
 class DummyEmbeddingModel:
     def embed(self, text: str):
         import numpy as np
+
         return np.zeros(384, dtype=np.float32)
 
     def from_bytes(self, b):
         import numpy as np
+
         if not b:
             return np.zeros(384, dtype=np.float32)
         return np.frombuffer(b, dtype=np.float32)
 
     def to_bytes(self, arr):
         import numpy as np
+
         return np.asarray(arr, dtype=np.float32).tobytes()
 
     @staticmethod
     def cosine_similarity(a, b):
         """All zero vectors → similarity 0.0, nodes returned by insertion order."""
         import numpy as np
+
         a, b = np.asarray(a, dtype=np.float32), np.asarray(b, dtype=np.float32)
         na, nb = np.linalg.norm(a), np.linalg.norm(b)
         if na == 0.0 or nb == 0.0:
@@ -123,7 +128,7 @@ def python_mapreduce_answer(chunks: list[str]) -> str:
 
     target_users = sorted(u for u, hit in user_hit.items() if hit)
     pairs = [f"({u1}, {u2})" for u1, u2 in combinations(target_users, 2)]
-    return repr(pairs)   # match gold format
+    return repr(pairs)  # match gold format
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +161,7 @@ class ModeReport:
             "total_cases": total,
             "answered_cases": answered,
             "correct": correct,
-            "accuracy": f"{(correct/total)*100:.1f}%" if total else "N/A",
+            "accuracy": f"{(correct / total) * 100:.1f}%" if total else "N/A",
             "avg_retrieved_tokens": round(avg_ret),
             "avg_prompt_tokens": round(avg_prompt),
         }
@@ -176,7 +181,8 @@ def build_graph(dataset_path: str, db_path: str) -> tuple[MemoryGraph, list]:
     for example in examples:
         if example.context_window_id not in indexed:
             _index_context_window(
-                graph, example,
+                graph,
+                example,
                 project="oolong-e2e",
                 chunk_lines=12,
                 overlap_lines=3,
@@ -199,15 +205,17 @@ def run_mode_a(graph: MemoryGraph, examples: list) -> ModeReport:
         )
         chunks = [n.content for n in result.nodes]
         raw_tokens = sum(len(c.split()) for c in chunks)
-        report.cases.append(CaseResult(
-            example_id=example.example_id,
-            retrieved_node_count=len(chunks),
-            retrieved_tokens=raw_tokens,
-            prompt_tokens=raw_tokens + len(example.question.split()),
-            predicted_answer="",   # retrieval-only, no answer
-            gold_answer=example.answer,
-            exact_match=False,
-        ))
+        report.cases.append(
+            CaseResult(
+                example_id=example.example_id,
+                retrieved_node_count=len(chunks),
+                retrieved_tokens=raw_tokens,
+                prompt_tokens=raw_tokens + len(example.question.split()),
+                predicted_answer="",  # retrieval-only, no answer
+                gold_answer=example.answer,
+                exact_match=False,
+            )
+        )
     return report
 
 
@@ -226,15 +234,17 @@ def run_mode_b(graph: MemoryGraph, examples: list) -> ModeReport:
         chunks = [n.content for n in result.nodes]
         raw_tokens = sum(len(c.split()) for c in chunks)
         predicted = python_mapreduce_answer(chunks)
-        report.cases.append(CaseResult(
-            example_id=example.example_id,
-            retrieved_node_count=len(chunks),
-            retrieved_tokens=raw_tokens,
-            prompt_tokens=raw_tokens + len(example.question.split()),
-            predicted_answer=predicted,
-            gold_answer=example.answer,
-            exact_match=answers_match(predicted, example.answer),
-        ))
+        report.cases.append(
+            CaseResult(
+                example_id=example.example_id,
+                retrieved_node_count=len(chunks),
+                retrieved_tokens=raw_tokens,
+                prompt_tokens=raw_tokens + len(example.question.split()),
+                predicted_answer=predicted,
+                gold_answer=example.answer,
+                exact_match=answers_match(predicted, example.answer),
+            )
+        )
     return report
 
 
@@ -318,52 +328,59 @@ def run_mode_c(graph: MemoryGraph, examples: list) -> ModeReport:
         # Here we use the deterministic map-reduce as a stand-in that produces
         # exactly what a perfect LLM would output for this synthetic dataset.
         llm_raw_output = "\n".join(
-            pair for pair in python_mapreduce_answer(chunks)
-                               .strip("[]'\"")
-                               .replace("', '", "\n")
-                               .replace("'", "")
-                               .split("\n")
+            pair
+            for pair in python_mapreduce_answer(chunks)
+            .strip("[]'\"")
+            .replace("', '", "\n")
+            .replace("'", "")
+            .split("\n")
             if re.match(r"^\(\d+,\s*\d+\)$", pair.strip())
         )
         # Re-parse into canonical form
-        predicted = parse_llm_output(llm_raw_output) if llm_raw_output.strip() \
-                    else python_mapreduce_answer(chunks)
+        predicted = parse_llm_output(llm_raw_output) if llm_raw_output.strip() else python_mapreduce_answer(chunks)
 
-        report.cases.append(CaseResult(
-            example_id=example.example_id,
-            retrieved_node_count=len(chunks),
-            retrieved_tokens=raw_tokens,
-            prompt_tokens=prompt_tokens,
-            predicted_answer=predicted,
-            gold_answer=example.answer,
-            exact_match=answers_match(predicted, example.answer),
-        ))
+        report.cases.append(
+            CaseResult(
+                example_id=example.example_id,
+                retrieved_node_count=len(chunks),
+                retrieved_tokens=raw_tokens,
+                prompt_tokens=prompt_tokens,
+                predicted_answer=predicted,
+                gold_answer=example.answer,
+                exact_match=answers_match(predicted, example.answer),
+            )
+        )
     return report
-
 
 
 # ---------------------------------------------------------------------------
 # Pretty-print per-case table
 # ---------------------------------------------------------------------------
 def print_mode(report: ModeReport):
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"  MODE: {report.mode}")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"  {'Example':<14} {'Chunks':>7} {'Ret.Tok':>9} {'Prompt.Tok':>11} {'Match':>6}")
-    print(f"  {'-'*55}")
+    print(f"  {'-' * 55}")
     for c in report.cases:
         match_str = "✅" if c.exact_match else "❌"
-        print(f"  {c.example_id:<14} {c.retrieved_node_count:>7} {c.retrieved_tokens:>9} "
-              f"{c.prompt_tokens:>11} {match_str:>6}")
+        print(
+            f"  {c.example_id:<14} {c.retrieved_node_count:>7} {c.retrieved_tokens:>9} "
+            f"{c.prompt_tokens:>11} {match_str:>6}"
+        )
         if not c.exact_match and c.predicted_answer:
             pred = _parse_answer(c.predicted_answer)
             gold = _parse_answer(c.gold_answer)
             extra = set(pred) - set(gold)
             missing = set(gold) - set(pred)
             if extra:
-                print(f"    ⚠ Extra pairs ({len(extra)}): {', '.join(sorted(extra)[:3])}{'...' if len(extra)>3 else ''}")
+                print(
+                    f"    ⚠ Extra pairs ({len(extra)}): {', '.join(sorted(extra)[:3])}{'...' if len(extra) > 3 else ''}"
+                )
             if missing:
-                print(f"    ⚠ Missing pairs ({len(missing)}): {', '.join(sorted(missing)[:3])}{'...' if len(missing)>3 else ''}")
+                print(
+                    f"    ⚠ Missing pairs ({len(missing)}): {', '.join(sorted(missing)[:3])}{'...' if len(missing) > 3 else ''}"
+                )
 
     s = report.summary()
     print("\n  ┌─ Summary ──────────────────────────────────")
@@ -386,7 +403,7 @@ def main():
     print("\n🔧 Building graph (indexing all 20 cases)...")
     t0 = time.time()
     graph, examples = build_graph(DATASET, DB)
-    print(f"   Done in {time.time()-t0:.1f}s  ({len(examples)} examples indexed)")
+    print(f"   Done in {time.time() - t0:.1f}s  ({len(examples)} examples indexed)")
 
     reports = []
 
@@ -404,11 +421,11 @@ def main():
         print_mode(r)
 
     # Head-to-head comparison
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("  HEAD-TO-HEAD COMPARISON")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"  {'Mode':<55} {'Acc':>6} {'AvgRet':>8} {'AvgPmt':>8}")
-    print(f"  {'-'*80}")
+    print(f"  {'-' * 80}")
     for r in reports:
         s = r.summary()
         print(f"  {s['mode']:<55} {s['accuracy']:>6} {s['avg_retrieved_tokens']:>8} {s['avg_prompt_tokens']:>8}")
@@ -424,21 +441,23 @@ def main():
     # Save full JSON report
     out = []
     for r in reports:
-        out.append({
-            "summary": r.summary(),
-            "cases": [
-                {
-                    "example_id": c.example_id,
-                    "retrieved_node_count": c.retrieved_node_count,
-                    "retrieved_tokens": c.retrieved_tokens,
-                    "prompt_tokens": c.prompt_tokens,
-                    "predicted_answer": c.predicted_answer,
-                    "gold_answer": c.gold_answer,
-                    "exact_match": c.exact_match,
-                }
-                for c in r.cases
-            ],
-        })
+        out.append(
+            {
+                "summary": r.summary(),
+                "cases": [
+                    {
+                        "example_id": c.example_id,
+                        "retrieved_node_count": c.retrieved_node_count,
+                        "retrieved_tokens": c.retrieved_tokens,
+                        "prompt_tokens": c.prompt_tokens,
+                        "predicted_answer": c.predicted_answer,
+                        "gold_answer": c.gold_answer,
+                        "exact_match": c.exact_match,
+                    }
+                    for c in r.cases
+                ],
+            }
+        )
     out_path = ROOT / "benchmarks/data/e2e_eval_report.json"
     out_path.write_text(json.dumps(out, indent=2))
     print(f"\n  📄 Full JSON report saved → {out_path}\n")

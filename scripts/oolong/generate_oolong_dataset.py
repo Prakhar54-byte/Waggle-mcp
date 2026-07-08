@@ -6,60 +6,67 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 # Categories
-CATEGORIES = [
-    "description and abstract concept",
-    "entity",
-    "human being",
-    "numeric value",
-    "location",
-    "abbreviation"
-]
+CATEGORIES = ["description and abstract concept", "entity", "human being", "numeric value", "location", "abbreviation"]
+
 
 # Generators for each category
 def generate_text(category):
     if category == "description and abstract concept":
-        return random.choice([
-            "Freedom is a state of mind.",
-            "The concept of time is relative.",
-            "Justice is blind.",
-            "Democracy is a form of government."
-        ])
+        return random.choice(
+            [
+                "Freedom is a state of mind.",
+                "The concept of time is relative.",
+                "Justice is blind.",
+                "Democracy is a form of government.",
+            ]
+        )
     elif category == "entity":
-        return random.choice([
-            "The company reported record profits.",
-            "The UN held a summit.",
-            "Google released a new product.",
-            "The committee approved the proposal."
-        ])
+        return random.choice(
+            [
+                "The company reported record profits.",
+                "The UN held a summit.",
+                "Google released a new product.",
+                "The committee approved the proposal.",
+            ]
+        )
     elif category == "human being":
-        return random.choice([
-            "Albert Einstein was a physicist.",
-            "Marie Curie won two Nobel prizes.",
-            "The president gave a speech.",
-            "John Doe is a software engineer."
-        ])
+        return random.choice(
+            [
+                "Albert Einstein was a physicist.",
+                "Marie Curie won two Nobel prizes.",
+                "The president gave a speech.",
+                "John Doe is a software engineer.",
+            ]
+        )
     elif category == "numeric value":
-        return random.choice([
-            "The temperature is 75 degrees.",
-            "We sold 1000 units yesterday.",
-            "The distance is 50 miles.",
-            "It costs 10 dollars."
-        ])
+        return random.choice(
+            [
+                "The temperature is 75 degrees.",
+                "We sold 1000 units yesterday.",
+                "The distance is 50 miles.",
+                "It costs 10 dollars.",
+            ]
+        )
     elif category == "location":
-        return random.choice([
-            "Paris is the capital of France.",
-            "The office is in New York.",
-            "Mount Everest is the highest mountain.",
-            "The park is downtown."
-        ])
+        return random.choice(
+            [
+                "Paris is the capital of France.",
+                "The office is in New York.",
+                "Mount Everest is the highest mountain.",
+                "The park is downtown.",
+            ]
+        )
     elif category == "abbreviation":
-        return random.choice([
-            "NASA stands for National Aeronautics and Space Administration.",
-            "WHO is the World Health Organization.",
-            "CEO means Chief Executive Officer.",
-            "USA is the United States of America."
-        ])
+        return random.choice(
+            [
+                "NASA stands for National Aeronautics and Space Administration.",
+                "WHO is the World Health Organization.",
+                "CEO means Chief Executive Officer.",
+                "USA is the United States of America.",
+            ]
+        )
     return "Unknown."
+
 
 def generate_case(num_users=5, num_examples=40):
     users = list(range(100, 100 + num_users))
@@ -110,8 +117,9 @@ def generate_case(num_users=5, num_examples=40):
         "question": question,
         "answer": answer_str,
         "answer_type": "list",
-        "task_group": "oolong-pairs"
+        "task_group": "oolong-pairs",
     }
+
 
 def main():
     output_path = ROOT / "benchmarks/data/oolong_synthetic_20.jsonl"
@@ -140,6 +148,7 @@ def main():
             f.write(json.dumps(case) + "\n")
 
     print(f"Dataset generated at {output_path}")
+
 
 if __name__ == "__main__":
     main()

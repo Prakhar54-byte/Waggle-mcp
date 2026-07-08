@@ -30,7 +30,7 @@ CRITICAL_DOCS = [
     ROOT / "docs" / "install" / "generic-mcp.md",
     ROOT / "docs" / "security.md",
 ]
-EXPECTED_COMMAND = 'waggle-mcp'
+EXPECTED_COMMAND = "waggle-mcp"
 EXPECTED_ARGS = '["serve", "--transport", "stdio"]'
 
 
@@ -91,9 +91,7 @@ def main() -> int:
                 continue
             target = (markdown_path.parent / target_without_anchor).resolve()
             if not target.exists():
-                failures.append(
-                    f"Broken local markdown link in {markdown_path.relative_to(ROOT)}: {relative_target}"
-                )
+                failures.append(f"Broken local markdown link in {markdown_path.relative_to(ROOT)}: {relative_target}")
 
     todo_pattern = re.compile(r"\bTODO\b", re.IGNORECASE)
     for doc_path in CRITICAL_DOCS:

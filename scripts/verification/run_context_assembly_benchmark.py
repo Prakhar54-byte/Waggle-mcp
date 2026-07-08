@@ -28,7 +28,7 @@ class FakeEmbeddingModel(EmbeddingModel):
     def embed(self, text: str) -> np.ndarray:
         # Deterministic based on text hash
         h = hash(text) % 1000
-        return np.array([h/1000, (h+1)/1000, (h+2)/1000], dtype=np.float32)
+        return np.array([h / 1000, (h + 1) / 1000, (h + 2) / 1000], dtype=np.float32)
 
     def to_bytes(self, embedding: np.ndarray) -> bytes:
         return embedding.tobytes()
@@ -47,9 +47,9 @@ class FakeEmbeddingModel(EmbeddingModel):
 
 def benchmark_support_coverage():
     """Benchmark: decision + reason must co-appear."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("BENCHMARK 1: Support Coverage (decision + reason)")
-    print("="*70)
+    print("=" * 70)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -103,9 +103,9 @@ def benchmark_support_coverage():
 
 def benchmark_contradiction_handling():
     """Benchmark: old + new decisions + updates edge must appear."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("BENCHMARK 2: Contradiction Handling (old + new + updates)")
-    print("="*70)
+    print("=" * 70)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -163,10 +163,7 @@ def benchmark_contradiction_handling():
         has_both_decisions = has_old and has_new
 
         # Check for updates edge
-        has_updates_edge = any(
-            e.relationship == RelationType.UPDATES
-            for e in result.edges
-        )
+        has_updates_edge = any(e.relationship == RelationType.UPDATES for e in result.edges)
 
         print("\nQuery: 'what changed about the database'")
         print(f"Nodes returned: {len(result.nodes)}")
@@ -181,9 +178,9 @@ def benchmark_contradiction_handling():
 
 def benchmark_dependency_chain():
     """Benchmark: complex dependency chains preserve context."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("BENCHMARK 3: Dependency Chain (decision → reason → requirement)")
-    print("="*70)
+    print("=" * 70)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -252,9 +249,9 @@ def benchmark_dependency_chain():
 
 def benchmark_noise_resistance():
     """Benchmark: noise doesn't overwhelm core context."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("BENCHMARK 4: Noise Resistance (10 noise nodes vs. core)")
-    print("="*70)
+    print("=" * 70)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -319,14 +316,14 @@ def benchmark_noise_resistance():
 
 
 def main():
-    print("\n" + "█"*70)
+    print("\n" + "█" * 70)
     print("█ CONTEXT ASSEMBLY BENCHMARK SUITE")
     print("█ Testing refactoring improvements:")
     print("█   - Support coverage (decision+reason co-appearance)")
     print("█   - Contradiction handling (old+new+edge)")
     print("█   - Dependency chains (multi-hop context)")
     print("█   - Noise resistance (core vs. weak relations)")
-    print("█"*70)
+    print("█" * 70)
 
     start = time.time()
 
@@ -341,16 +338,16 @@ def main():
     passed = sum(r[1] for r in results)
     total = len(results)
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("RESULTS")
-    print("="*70)
+    print("=" * 70)
     for name, result in results:
         status = "✓ PASS" if result else "✗ FAIL"
         print(f"{name:.<50} {status}")
 
-    print(f"\nTotal: {passed}/{total} passed ({100*passed//total}%)")
+    print(f"\nTotal: {passed}/{total} passed ({100 * passed // total}%)")
     print(f"Time: {elapsed:.2f}s")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     return 0 if passed == total else 1
 

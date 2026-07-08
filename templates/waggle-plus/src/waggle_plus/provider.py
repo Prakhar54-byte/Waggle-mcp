@@ -53,9 +53,7 @@ class ExampleOIDCProvider:
         source_roles = [str(value) for value in session.get("roles", [])]
         primary_role = "Admin" if "Admin" in source_roles else "Viewer"
         permissions = (
-            ["read:data", "write:data", "manage:users", "manage:security"]
-            if primary_role == "Admin"
-            else ["read:data"]
+            ["read:data", "write:data", "manage:users", "manage:security"] if primary_role == "Admin" else ["read:data"]
         )
         return {
             "primary_role": primary_role,

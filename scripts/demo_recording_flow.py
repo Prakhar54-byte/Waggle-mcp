@@ -166,7 +166,9 @@ async def session_one() -> tuple[dict[str, str], dict[str, Any]]:
                 },
                 why="Store a TODO note so it can be recalled later.",
             )
-            say("These three writes show the graph can hold preferences, architectural needs, and plain operational notes.")
+            say(
+                "These three writes show the graph can hold preferences, architectural needs, and plain operational notes."
+            )
 
             line("STEP 4 - RETRIEVAL DEMO")
             await call(
@@ -221,7 +223,9 @@ async def session_one() -> tuple[dict[str, str], dict[str, Any]]:
                 {"query": "What was the original database decision?", "max_nodes": 8, "max_depth": 2},
                 why="Check whether Waggle can still preserve and retrieve the older decision.",
             )
-            say("This run now shows explicit contradiction tracking: the new MySQL direction was stored alongside the original PostgreSQL decision and linked with a contradiction edge.")
+            say(
+                "This run now shows explicit contradiction tracking: the new MySQL direction was stored alongside the original PostgreSQL decision and linked with a contradiction edge."
+            )
 
             line("STEP 6 - GRAPH INSPECTION")
             decomposed = await call(
@@ -252,7 +256,9 @@ async def session_one() -> tuple[dict[str, str], dict[str, Any]]:
                 )
             else:
                 say("[tool] `get_related`")
-                say("[result] SKIPPED: the decomposition context node was not present, so there was nothing connected to traverse.")
+                say(
+                    "[result] SKIPPED: the decomposition context node was not present, so there was nothing connected to traverse."
+                )
 
             await call(
                 session,
@@ -278,7 +284,9 @@ async def session_one() -> tuple[dict[str, str], dict[str, Any]]:
                 {"project": "backend"},
                 why="Generate a compact briefing for a fresh session without replaying the entire conversation.",
             )
-            say("This is useful because it preserves salient memory as a compact brief instead of stuffing raw transcript into the next prompt.")
+            say(
+                "This is useful because it preserves salient memory as a compact brief instead of stuffing raw transcript into the next prompt."
+            )
 
             line("STEP 8 - EXTRA TOOL COVERAGE")
             scratch = await call(
@@ -398,17 +406,27 @@ async def main() -> None:
     prepare_workspace()
     line("DEMO SETUP")
     say(f"Recording-friendly demo workspace: {TMP_DIR}")
-    say(f"Embedding mode: {os.environ.get('WAGGLE_MODEL', 'fake-model')} (use `fake-model` for offline deterministic embeddings).")
-    say("Note: if the default transformer model is not cached locally, Waggle now falls back to deterministic local embeddings instead of failing.")
+    say(
+        f"Embedding mode: {os.environ.get('WAGGLE_MODEL', 'fake-model')} (use `fake-model` for offline deterministic embeddings)."
+    )
+    say(
+        "Note: if the default transformer model is not cached locally, Waggle now falls back to deterministic local embeddings instead of failing."
+    )
 
     await session_one()
     await session_two()
     await restore_demo()
 
     line("FINAL REPORT")
-    say("Tools successfully tested: observe_conversation, query_graph, store_node, store_edge, get_related, update_node, delete_node, decompose_and_store, graph_diff, prime_context, get_topics, get_stats, export_graph_html, export_graph_backup, import_graph_backup.")
-    say("Features confirmed: tool discovery, clean conversation observation, contradiction tracking, retrieval, persistence across sessions, manual graph editing, graph inspection, compact context generation, HTML export, JSON backup, and restore.")
-    say("Operational note: if the transformer model is not cached locally, Waggle now falls back to deterministic local embeddings instead of failing startup or write operations.")
+    say(
+        "Tools successfully tested: observe_conversation, query_graph, store_node, store_edge, get_related, update_node, delete_node, decompose_and_store, graph_diff, prime_context, get_topics, get_stats, export_graph_html, export_graph_backup, import_graph_backup."
+    )
+    say(
+        "Features confirmed: tool discovery, clean conversation observation, contradiction tracking, retrieval, persistence across sessions, manual graph editing, graph inspection, compact context generation, HTML export, JSON backup, and restore."
+    )
+    say(
+        "Operational note: if the transformer model is not cached locally, Waggle now falls back to deterministic local embeddings instead of failing startup or write operations."
+    )
     say(f"Artifacts generated: HTML graph at {HTML_PATH} and JSON backup at {BACKUP_PATH}")
 
 

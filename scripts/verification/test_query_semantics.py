@@ -24,6 +24,7 @@ from waggle.models import NodeType, RelationType
 
 class FakeEmbeddingModel:
     """Minimal embedding for testing."""
+
     def embed(self, text: str) -> np.ndarray:
         vector = np.zeros(8, dtype=np.float32)
         for token in text.lower().split():
@@ -92,10 +93,7 @@ def test_decision_recall():
         # Verify
         has_decision = decision.id in result_ids
         has_reason = reason.id in result_ids
-        has_edge = any(
-            e.source_id == decision.id and e.target_id == reason.id
-            for e in result.edges
-        )
+        has_edge = any(e.source_id == decision.id and e.target_id == reason.id for e in result.edges)
 
         print(f"\n✓ Decision node found: {has_decision}")
         print(f"✓ Reason node found: {has_reason}")
@@ -213,8 +211,11 @@ def test_contradiction_handling():
         has_old = old_decision.id in result_ids
         has_new = new_decision.id in result_ids
         has_edge = any(
-            (e.source_id == new_decision.id and e.target_id == old_decision.id
-             and e.relationship == RelationType.UPDATES)
+            (
+                e.source_id == new_decision.id
+                and e.target_id == old_decision.id
+                and e.relationship == RelationType.UPDATES
+            )
             for e in result.edges
         )
 
